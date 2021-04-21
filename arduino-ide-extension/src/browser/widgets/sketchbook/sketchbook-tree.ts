@@ -27,7 +27,13 @@ export class SketchbookTree extends FileTree {
         if (!SketchbookTree.RootNode.is(root)) {
             return [];
         }
-        const children = await Promise.all((await super.resolveChildren(parent)).map(node => this.maybeDecorateNode(node, root.showAllFiles)));
+        const children = (await Promise.all((await super.resolveChildren(parent)).map(node => this.maybeDecorateNode(node, root.showAllFiles)))).filter(node => {
+            // filter out hidden nodes
+            if (DirNode.is(node) || FileStatNode.is(node)) {
+                return node.fileStat.name.indexOf('.') !== 0
+            }
+            return true;
+        });
         if (SketchbookTree.RootNode.is(parent)) {
             return children.filter(DirNode.is).filter(node => ['libraries', 'hardware'].indexOf(this.labelProvider.getName(node)) === -1);
         }
@@ -41,7 +47,7 @@ export class SketchbookTree extends FileTree {
         if (DirNode.is(node)) {
             const sketch = await this.sketchesService.maybeLoadSketch(node.uri.toString());
             if (sketch) {
-                Object.assign(node, { type: 'sketch', commands: [SketchbookCommands.OPEN, SketchbookCommands.OPEN_NEW_WINDOW] });
+                Object.assign(node, { type: 'sketch', commands: [SketchbookCommands.OPEN_SKETCHBOOK_CONTEXT_MENU] });
                 if (!showAllFiles) {
                     delete (node as any).expanded;
                 }

@@ -34,6 +34,7 @@ export interface Settings extends Index {
     verboseOnUpload: boolean; // `arduino.upload.verbose`
     verifyAfterUpload: boolean; // `arduino.upload.verify`
     enableLsLogs: boolean; // `arduino.language.log`
+    sketchbookShowAllFiles: boolean; // `arduino.sketchbook.showAllFiles`
 
     sketchbookPath: string; // CLI
     additionalUrls: string[]; // CLI
@@ -94,7 +95,8 @@ export class SettingsService {
             verboseOnUpload,
             verifyAfterUpload,
             enableLsLogs,
-            cliConfig
+            sketchbookShowAllFiles,
+            cliConfig,
         ] = await Promise.all([
             this.preferenceService.get<number>('editor.fontSize', 12),
             this.preferenceService.get<string>('workbench.colorTheme', 'arduino-theme'),
@@ -112,6 +114,7 @@ export class SettingsService {
             this.preferenceService.get<boolean>('arduino.upload.verbose', true),
             this.preferenceService.get<boolean>('arduino.upload.verify', true),
             this.preferenceService.get<boolean>('arduino.language.log', true),
+            this.preferenceService.get<boolean>('arduino.sketchbook.showAllFiles', false),
             this.configService.getConfiguration()
         ]);
         const { additionalUrls, sketchDirUri, network } = cliConfig;
@@ -129,6 +132,7 @@ export class SettingsService {
             verboseOnUpload,
             verifyAfterUpload,
             enableLsLogs,
+            sketchbookShowAllFiles,
             additionalUrls,
             sketchbookPath,
             network
@@ -194,7 +198,8 @@ export class SettingsService {
             enableLsLogs,
             sketchbookPath,
             additionalUrls,
-            network
+            network,
+            sketchbookShowAllFiles
         } = this._settings;
         const [config, sketchDirUri] = await Promise.all([
             this.configService.getConfiguration(),
@@ -217,6 +222,7 @@ export class SettingsService {
             this.preferenceService.set('arduino.upload.verbose', verboseOnUpload, PreferenceScope.User),
             this.preferenceService.set('arduino.upload.verify', verifyAfterUpload, PreferenceScope.User),
             this.preferenceService.set('arduino.language.log', enableLsLogs, PreferenceScope.User),
+            this.preferenceService.set('arduino.sketchbook.showAllFiles', sketchbookShowAllFiles, PreferenceScope.User),
             this.configService.setConfiguration(config)
         ]);
         this.onDidChangeEmitter.fire(this._settings);
@@ -369,6 +375,13 @@ export class SettingsComponent extends React.Component<SettingsComponent.Props, 
                     checked={this.state.autoSave === 'on'}
                     onChange={this.autoSaveDidChange} />
                 Auto save
+            </label>
+            <label className='flex-line'>
+                <input
+                    type='checkbox'
+                    checked={this.state.sketchbookShowAllFiles === true}
+                    onChange={this.sketchbookShowAllFilesDidChange} />
+                Sketchbook show files
             </label>
             <label className='flex-line'>
                 <input
@@ -562,6 +575,10 @@ export class SettingsComponent extends React.Component<SettingsComponent.Props, 
 
     protected checkForUpdatesDidChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ checkForUpdates: event.target.checked });
+    };
+
+    protected sketchbookShowAllFilesDidChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({ sketchbookShowAllFiles: event.target.checked });
     };
 
     protected autoSaveDidChange = (event: React.ChangeEvent<HTMLInputElement>) => {

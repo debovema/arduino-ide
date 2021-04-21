@@ -18,3 +18,13 @@
 .sketchbook-trees-container {
     height: 99%;
 }
+
+.sketchbook-tree__opts {
+  background: url('./sketchbook-opts-icon.svg') center center no-repeat;
+  width: var(--theia-icon-size);
+  height: var(--theia-icon-size);
+}
+
+#arduino-sketchbook-tree-widget .theia-TreeNodeSegmentGrow {
+  flex: 1;
+}

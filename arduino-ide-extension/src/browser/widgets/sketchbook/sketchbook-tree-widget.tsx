@@ -9,6 +9,7 @@ import { ContextMenuRenderer } from '@theia/core/lib/browser/context-menu-render
 import { SketchbookTree } from './sketchbook-tree';
 import { SketchbookTreeModel } from './sketchbook-tree-model';
 import { ArduinoPreferences } from '../../arduino-preferences';
+import { SketchesServiceClientImpl } from '../../../common/protocol/sketches-service-client-impl';
 
 @injectable()
 export class SketchbookTreeWidget extends FileTreeWidget {
@@ -18,6 +19,11 @@ export class SketchbookTreeWidget extends FileTreeWidget {
 
     @inject(ArduinoPreferences)
     protected readonly arduinoPreferences: ArduinoPreferences;
+
+    @inject(SketchesServiceClientImpl)
+    protected readonly sketchServiceClient: SketchesServiceClientImpl;
+
+    private currentSketchUri = '';
 
     constructor(
         @inject(TreeProps) readonly props: TreeProps,
@@ -41,6 +47,9 @@ export class SketchbookTreeWidget extends FileTreeWidget {
             }
         }));
         this.updateModel();
+        // cache the current open sketch uri
+        const currentSketch = await this.sketchServiceClient.currentSketch();
+        this.currentSketchUri = currentSketch && currentSketch.uri || '';
     }
 
     async updateModel(): Promise<void> {
@@ -80,7 +89,7 @@ export class SketchbookTreeWidget extends FileTreeWidget {
     }
 
     protected renderInlineCommands(node: TreeNode, props: NodeProps): React.ReactNode {
-        if (SketchbookTree.SketchDirNode.is(node) && node.commands && node.id === this.hoveredNodeId) {
+        if (SketchbookTree.SketchDirNode.is(node) && (node.commands && node.id === this.hoveredNodeId || this.currentSketchUri === node?.uri.toString())) {
             return Array.from(new Set(node.commands)).map(command => this.renderInlineCommand(command.id, node));
         }
         return undefined;
@@ -99,7 +108,7 @@ export class SketchbookTreeWidget extends FileTreeWidget {
                 onClick={event => {
                     event.preventDefault();
                     event.stopPropagation();
-                    this.commandRegistry.executeCommand(commandId, Object.assign(args, { event: event.nativeEvent }))
+                    this.commandRegistry.executeCommand(commandId, Object.assign(args, { event: event.nativeEvent }));
                 }}
             />;
         }
