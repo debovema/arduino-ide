@@ -122,7 +122,11 @@
   ],
   "arduino": {
     "cli": {
-      "version": "0.18.1"
+      "version": {
+        "owner": "arduino",
+        "repo": "arduino-cli",
+        "commitish": "455f39e"
+      }
     }
   }
 }
